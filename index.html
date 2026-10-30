@@ -87,17 +87,17 @@
                 <!-- User Profile / Auth Button -->
                 <div id="auth-section" class="flex items-center gap-2">
                     <button onclick="openAuthModal()" id="login-btn" class="px-3.5 py-1.5 text-xs sm:text-sm bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-lg transition flex items-center gap-1.5 shadow-md shadow-emerald-950">
-                        <i class="fa-solid fa-right-to-bracket"></i>
+                        <i class="fa-brands fa-google"></i>
                         <span data-i18n="login">লগইন</span>
                     </button>
 
                     <div id="user-badge" class="hidden flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-lg p-1 pr-3">
-                        <div id="user-avatar" class="w-7 h-7 rounded-full bg-emerald-600 flex items-center justify-center font-bold text-xs text-white uppercase">
+                        <div id="user-avatar" class="w-7 h-7 rounded-full bg-emerald-600 flex items-center justify-center font-bold text-xs text-white uppercase bg-cover bg-center">
                             U
                         </div>
                         <span id="user-name-display" class="text-xs font-semibold text-slate-200 truncate max-w-[100px] sm:max-w-[140px]">User</span>
-                        <button onclick="openAuthModal()" title="নাম পরিবর্তন" class="text-slate-400 hover:text-emerald-400 text-xs ml-1">
-                            <i class="fa-solid fa-pen-to-square"></i>
+                        <button onclick="signOutUser()" title="লগআউট" class="text-slate-400 hover:text-rose-400 text-xs ml-1">
+                            <i class="fa-solid fa-right-from-bracket"></i>
                         </button>
                     </div>
                 </div>
@@ -488,23 +488,34 @@
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                 <h3 class="text-lg font-bold text-white flex items-center gap-2">
                     <i class="fa-solid fa-user-check text-emerald-400"></i>
-                    <span data-i18n="loginTitle">প্লেয়ার প্রোফাইল লগইন</span>
+                    <span data-i18n="loginTitle">প্লেয়ার প্রোফাইল সাইন-ইন</span>
                 </h3>
                 <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
 
-            <p class="text-xs text-slate-400" data-i18n="loginDesc">আপনার নিজের ক্রিকেট প্রোফাইল ক্লাউডে নিরাপদ রাখতে ও রেকর্ড সুরক্ষিত করতে একটি নাম লিখে সাইন-ইন করুন।</p>
+            <p class="text-xs text-slate-400" data-i18n="loginDesc">আপনার নিজের ক্রিকেট প্রোফাইল ক্লাউডে নিরাপদ রাখতে এবং কমিউনিটিতে যোগ দিতে গুগল দিয়ে এক ক্লিকে সাইন-ইন করুন।</p>
 
-            <div class="space-y-4">
+            <div class="space-y-4 pt-2">
+                <button onclick="signInWithGoogle()" class="w-full py-3 px-4 bg-white hover:bg-slate-100 text-slate-900 font-bold rounded-xl text-sm transition flex items-center justify-center gap-3 shadow-lg">
+                    <i class="fa-brands fa-google text-rose-500 text-lg"></i>
+                    <span>Google দিয়ে কন্টিনিউ করুন</span>
+                </button>
+
+                <div class="relative flex py-1 items-center">
+                    <div class="flex-grow border-t border-slate-800"></div>
+                    <span class="flex-shrink mx-3 text-[11px] text-slate-500 uppercase">অথবা গেস্ট প্রোফাইল</span>
+                    <div class="flex-grow border-t border-slate-800"></div>
+                </div>
+
                 <div>
-                    <label class="block text-xs text-slate-300 font-semibold mb-1" data-i18n="playerName">প্লেয়ার নাম / আইডি *</label>
-                    <input type="text" id="auth-name-input" placeholder="যেমন: তামিম ইকবাল" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                    <label class="block text-xs text-slate-300 font-semibold mb-1" data-i18n="playerName">প্লেয়ার নাম (গেস্ট)</label>
+                    <input type="text" id="auth-name-input" placeholder="যেমন: সাকিব আল হাসান" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
                 </div>
             </div>
 
             <div class="pt-2 flex justify-end gap-2">
                 <button onclick="closeAuthModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs" data-i18n="cancel">বাতিল</button>
-                <button onclick="signInUser()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg text-xs" data-i18n="loginBtn">লগইন করুন</button>
+                <button onclick="signInGuestUser()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg text-xs">গেস্ট হিসেবে সেভ করুন</button>
             </div>
         </div>
     </div>
@@ -541,6 +552,7 @@
             currentUser: null,
             userId: null,
             userName: localStorage.getItem('cricket_user_name') || "খেলোয়াড়",
+            userPhoto: localStorage.getItem('cricket_user_photo') || "",
             matches: [],
             communityPlayers: [],
             currentLanguage: 'bn',
@@ -746,7 +758,14 @@
                 loginBtn.classList.add('hidden');
                 userBadge.classList.remove('hidden');
                 userNameDisplay.innerText = window.appState.userName;
-                userAvatar.innerText = window.appState.userName.charAt(0).toUpperCase();
+                
+                if (window.appState.userPhoto) {
+                    userAvatar.style.backgroundImage = `url('${window.appState.userPhoto}')`;
+                    userAvatar.innerText = '';
+                } else {
+                    userAvatar.style.backgroundImage = 'none';
+                    userAvatar.innerText = window.appState.userName.charAt(0).toUpperCase();
+                }
             } else {
                 loginBtn.classList.remove('hidden');
                 userBadge.classList.add('hidden');
@@ -795,12 +814,14 @@
             document.getElementById('auth-modal').classList.add('hidden');
         };
 
-        window.signInUser = function() {
+        window.signInGuestUser = function() {
             const inputName = document.getElementById('auth-name-input').value.trim();
             if (!inputName) return;
 
             window.appState.userName = inputName;
+            window.appState.userPhoto = "";
             localStorage.setItem('cricket_user_name', inputName);
+            localStorage.removeItem('cricket_user_photo');
             window.updateUserUI();
             window.closeAuthModal();
 
@@ -1049,14 +1070,15 @@
                 const pMatches = p.matches || [];
                 const stats = calculateStats(pMatches, 'ALL');
                 const isSelf = p.userId === window.appState.userId;
+                const avatarBg = p.userPhoto ? `style="background-image: url('${p.userPhoto}'); background-size: cover; background-position: center;"` : '';
 
                 return `
                     <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 hover:border-slate-700 transition flex flex-col justify-between">
                         <div>
                             <div class="flex items-center justify-between mb-4">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-600 to-green-500 flex items-center justify-center font-bold text-white text-lg uppercase shadow">
-                                        ${(p.userName || 'P').charAt(0)}
+                                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-600 to-green-500 flex items-center justify-center font-bold text-white text-lg uppercase shadow overflow-hidden" ${avatarBg}>
+                                        ${!p.userPhoto ? (p.userName || 'P').charAt(0) : ''}
                                     </div>
                                     <div>
                                         <h3 class="font-bold text-white text-base flex items-center gap-1.5">
@@ -1235,7 +1257,7 @@
     <!-- Firebase SDK Modules & Realtime Subscriptions -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
@@ -1258,6 +1280,42 @@
             console.warn("Firebase initialization fallback active.");
         }
 
+        window.signInWithGoogle = async function() {
+            if (!auth) return;
+            const provider = new GoogleAuthProvider();
+            try {
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                window.appState.userName = user.displayName || "Google Player";
+                window.appState.userPhoto = user.photoURL || "";
+                localStorage.setItem('cricket_user_name', window.appState.userName);
+                if (user.photoURL) localStorage.setItem('cricket_user_photo', user.photoURL);
+                
+                window.updateUserUI();
+                window.closeAuthModal();
+                await window.saveUserDataToFirestore();
+            } catch (error) {
+                console.error("Google Auth error:", error);
+            }
+        };
+
+        window.signOutUser = async function() {
+            if (!auth) return;
+            try {
+                await signOut(auth);
+                localStorage.removeItem('cricket_user_name');
+                localStorage.removeItem('cricket_user_photo');
+                window.appState.userName = "খেলোয়াড়";
+                window.appState.userPhoto = "";
+                window.appState.matches = [];
+                window.updateUserUI();
+                window.renderDashboard();
+                window.renderMatchHistory();
+            } catch (e) {
+                console.error("Signout error:", e);
+            }
+        };
+
         // Firebase Sync Implementations attached to window
         window.subscribeUserMatches = function() {
             if (!db || !window.appState.userId) return;
@@ -1269,6 +1327,7 @@
                     window.appState.matches = data.matches || [];
                     if (data.userName) {
                         window.appState.userName = data.userName;
+                        window.appState.userPhoto = data.userPhoto || window.appState.userPhoto;
                         window.updateUserUI();
                     }
                 } else {
@@ -1306,6 +1365,7 @@
             const payload = {
                 userId: window.appState.userId,
                 userName: window.appState.userName,
+                userPhoto: window.appState.userPhoto,
                 matches: window.appState.matches,
                 updatedAt: new Date().toISOString()
             };
@@ -1323,7 +1383,7 @@
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
+                } else if (!auth.currentUser) {
                     await signInAnonymously(auth);
                 }
             } catch (e) {
@@ -1337,13 +1397,16 @@
                     window.appState.currentUser = user;
                     window.appState.userId = user.uid;
                     
+                    if (user.displayName) window.appState.userName = user.displayName;
+                    if (user.photoURL) window.appState.userPhoto = user.photoURL;
+
                     window.updateUserUI();
                     window.subscribeUserMatches();
                     window.subscribeCommunity();
+                } else {
+                    initAuth();
                 }
             });
-
-            initAuth();
         } else {
             window.updateUserUI();
             window.renderDashboard();
