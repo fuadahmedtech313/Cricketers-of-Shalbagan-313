@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="bn" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cricket Career Tracker & Community Hub</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Hind Siliguri', 'Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Hind Siliguri', 'Inter', sans-serif;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-emerald-500 selection:text-white">
+
+    <!-- Header Navigation -->
+    <header class="bg-slate-900/90 border-b border-slate-800 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex justify-between items-center gap-2">
+            
+            <!-- Brand Logo -->
+            <div class="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer" onclick="switchTab('dashboard')">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-green-400 flex items-center justify-center text-white text-xl shadow-lg shadow-emerald-950/50">
+                    <i class="fa-solid fa-cricket-bat-ball"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                        <span data-i18n="appTitle">ক্রিকেট ক্যারিয়ার ও কমিউনিটি</span>
+                    </h1>
+                    <p class="text-xs text-slate-400 hidden sm:block" data-i18n="appSubtitle">আপনার এলাকা ও টুর্নামেন্টের অল-ইন-ওয়ান ক্রিকেট ইতিহাস</p>
+                </div>
+            </div>
+
+            <!-- Right Header Actions (Auth Status & Language Toggle) -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                
+                <!-- Language Switcher Button -->
+                <button onclick="toggleLanguage()" class="px-3 py-1.5 text-xs sm:text-sm bg-slate-800 hover:bg-slate-700 text-emerald-400 font-semibold rounded-lg border border-slate-700 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-language text-base"></i>
+                    <span id="lang-btn-text">English</span>
+                </button>
+
+                <!-- User Profile / Auth Button -->
+                <div id="auth-section" class="flex items-center gap-2">
+                    <button onclick="openAuthModal()" id="login-btn" class="px-3.5 py-1.5 text-xs sm:text-sm bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-lg transition flex items-center gap-1.5 shadow-md shadow-emerald-950">
+                        <i class="fa-solid fa-right-to-bracket"></i>
+                        <span data-i18n="login">লগইন</span>
+                    </button>
+
+                    <div id="user-badge" class="hidden flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-lg p-1 pr-3">
+                        <div id="user-avatar" class="w-7 h-7 rounded-full bg-emerald-600 flex items-center justify-center font-bold text-xs text-white uppercase">
+                            U
+                        </div>
+                        <span id="user-name-display" class="text-xs font-semibold text-slate-200 truncate max-w-[100px] sm:max-w-[140px]">User</span>
+                        <button onclick="openAuthModal()" title="নাম পরিবর্তন" class="text-slate-400 hover:text-emerald-400 text-xs ml-1">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full space-y-6">
+
+        <!-- Navigation Tabs -->
+        <div class="flex border-b border-slate-800 gap-1 sm:gap-4 overflow-x-auto no-scrollbar">
+            <button id="tab-btn-dashboard" onclick="switchTab('dashboard')" class="tab-btn py-3 px-4 text-sm sm:text-base font-semibold border-b-2 border-emerald-500 text-emerald-400 flex items-center gap-2 whitespace-nowrap transition">
+                <i class="fa-solid fa-chart-pie"></i> <span data-i18n="tabDashboard">আমার ক্যারিয়ার</span>
+            </button>
+            <button id="tab-btn-history" onclick="switchTab('history')" class="tab-btn py-3 px-4 text-sm sm:text-base font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap transition">
+                <i class="fa-solid fa-list-check"></i> <span data-i18n="tabMatches">ম্যাচ ইতিহাস</span>
+            </button>
+            <button id="tab-btn-add" onclick="switchTab('add')" class="tab-btn py-3 px-4 text-sm sm:text-base font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap transition">
+                <i class="fa-solid fa-plus-circle"></i> <span data-i18n="tabAddMatch">নতুন ম্যাচ</span>
+            </button>
+            <button id="tab-btn-community" onclick="switchTab('community')" class="tab-btn py-3 px-4 text-sm sm:text-base font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap transition">
+                <i class="fa-solid fa-users"></i> <span data-i18n="tabCommunity">কমিউনিটি প্লেয়ার্স</span>
+            </button>
+        </div>
+
+        <!-- ================= TAB 1: DASHBOARD ================= -->
+        <section id="tab-dashboard" class="space-y-6">
+
+            <!-- Format Filters -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900/80 p-4 rounded-xl border border-slate-800">
+                <div class="flex items-center gap-2 text-slate-300 font-medium text-sm">
+                    <i class="fa-solid fa-filter text-emerald-400"></i>
+                    <span data-i18n="filterFormat">ফরম্যাট নির্বাচন করুন:</span>
+                </div>
+                <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+                    <button onclick="filterStats('ALL')" class="format-filter-btn px-3 py-1.5 text-xs sm:text-sm rounded-lg bg-emerald-600 text-white font-medium transition" data-format="ALL" data-i18n="formatAll">সব ফরম্যাট</button>
+                    <button onclick="filterStats('4_OVER')" class="format-filter-btn px-3 py-1.5 text-xs sm:text-sm rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 font-medium transition" data-format="4_OVER" data-i18n="format4Over">৪ ওভার</button>
+                    <button onclick="filterStats('6_OVER')" class="format-filter-btn px-3 py-1.5 text-xs sm:text-sm rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 font-medium transition" data-format="6_OVER" data-i18n="format6Over">৬ ওভার</button>
+                    <button onclick="filterStats('10_OVER')" class="format-filter-btn px-3 py-1.5 text-xs sm:text-sm rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 font-medium transition" data-format="10_OVER" data-i18n="format10Over">১০ ওভার</button>
+                    <button onclick="filterStats('NUMBER_BATTING')" class="format-filter-btn px-3 py-1.5 text-xs sm:text-sm rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 font-medium transition" data-format="NUMBER_BATTING" data-i18n="formatNumBatting">নাম্বার ব্যাটিং</button>
+                </div>
+            </div>
+
+            <!-- BATTING STATS CARDS -->
+            <div>
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="w-2 h-6 bg-emerald-500 rounded-full"></div>
+                    <h2 class="text-xl font-bold text-white tracking-wide" data-i18n="battingSummary">ব্যাটিং পরিসংখ্যান (Batting Summary)</h2>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-sm">
+                        <span class="text-slate-400 text-xs sm:text-sm" data-i18n="matInn">ম্যাচ / ইনিংস</span>
+                        <p id="stat-bat-matches" class="text-2xl sm:text-3xl font-extrabold text-white mt-1">0 / 0</p>
+                        <span class="text-xs text-slate-500 mt-1 block" id="stat-bat-no">নট আউট: 0</span>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-sm">
+                        <span class="text-slate-400 text-xs sm:text-sm" data-i18n="totalRuns">মোট রান</span>
+                        <p id="stat-bat-runs" class="text-2xl sm:text-3xl font-extrabold text-emerald-400 mt-1">0</p>
+                        <span class="text-xs text-slate-500 mt-1 block" id="stat-bat-balls">বল খেলেছেন: 0</span>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-sm">
+                        <span class="text-slate-400 text-xs sm:text-sm" data-i18n="batAvg">ব্যাটিং গড় (AVG)</span>
+                        <p id="stat-bat-avg" class="text-2xl sm:text-3xl font-extrabold text-amber-400 mt-1">0.00</p>
+                        <span class="text-xs text-slate-500 mt-1 block" data-i18n="runsPerOut">রান প্রতি আউট</span>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-sm">
+                        <span class="text-slate-400 text-xs sm:text-sm" data-i18n="batSR">স্ট্রাইক রেট (SR)</span>
+                        <p id="stat-bat-sr" class="text-2xl sm:text-3xl font-extrabold text-sky-400 mt-1">0.00</p>
+                        <span class="text-xs text-slate-500 mt-1 block" data-i18n="runsPer100B">প্রতি ১০০ বলে রান</span>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-sm">
+                        <span class="text-slate-400 text-xs sm:text-sm" data-i18n="highestScore">সর্বোচ্চ রান (HS)</span>
+                        <p id="stat-bat-hs" class="text-2xl sm:text-3xl font-extrabold text-purple-400 mt-1">0</p>
+                        <span class="text-xs text-slate-500 mt-1 block" data-i18n="inSingleInnings">এক ইনিংসে</span>
+                    </div>
+                </div>
+
+                <!-- Batting Milestones -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-3">
+                    <div class="bg-slate-900/60 border border-slate-800 p-3 rounded-lg flex justify-between items-center">
+                        <span class="text-slate-400 text-xs" data-i18n="hundreds">সেঞ্চুরি (100s):</span>
+                        <span id="stat-bat-100s" class="text-lg font-bold text-emerald-400">0</span>
+                    </div>
+                    <div class="bg-slate-900/60 border border-slate-800 p-3 rounded-lg flex justify-between items-center">
+                        <span class="text-slate-400 text-xs" data-i18n="fifties">হাফ-সেঞ্চুরি (50s):</span>
+                        <span id="stat-bat-50s" class="text-lg font-bold text-amber-400">0</span>
+                    </div>
+                    <div class="bg-slate-900/60 border border-slate-800 p-3 rounded-lg flex justify-between items-center">
+                        <span class="text-slate-400 text-xs" data-i18n="boundaries">বাউন্ডারি (4s / 6s):</span>
+                        <span id="stat-bat-boundaries" class="text-lg font-bold text-sky-400">0 / 0</span>
+                    </div>
+                    <div class="bg-slate-900/60 border border-slate-800 p-3 rounded-lg flex justify-between items-center">
+                        <span class="text-slate-400 text-xs" data-i18n="ducks">ডাক (0 রানে আউট):</span>
+                        <span id="stat-bat-ducks" class="text-lg font-bold text-rose-400">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BOWLING STATS CARDS -->
+            <div class="pt-4">
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="w-2 h-6 bg-sky-500 rounded-full"></div>
+                    <h2 class="text-xl font-bold text-white tracking-wide" data-i18n="bowlingSummary">বোলিং পরিসংখ্যান (Bowling Summary)</h2>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-sm">
+                        <span class="text-slate-400 text-xs sm:text-sm" data-i18n="oversMaidens">ওভার / মেডেন</span>
+                        <p id="stat-bowl-overs" class="text-2xl sm:text-3xl font-extrabold text-white mt-1">0.0</p>
+                        <span class="text-xs text-slate-500 mt-1 block" id="stat-bowl-maidens">মেডেন: 0</span>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-sm">
+                        <span class="text-slate-400 text-xs sm:text-sm" data-i18n="wickets">উইকেট</span>
+                        <p id="stat-bowl-wickets" class="text-2xl sm:text-3xl font-extrabold text-emerald-400 mt-1">0</p>
+                        <span class="text-xs text-slate-500 mt-1 block" id="stat-bowl-runs">প্রদানকৃত রান: 0</span>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-sm">
+                        <span class="text-slate-400 text-xs sm:text-sm" data-i18n="economy">ইকোনমি (Econ)</span>
+                        <p id="stat-bowl-econ" class="text-2xl sm:text-3xl font-extrabold text-amber-400 mt-1">0.00</p>
+                        <span class="text-xs text-slate-500 mt-1 block" data-i18n="runsPerOver">প্রতি ওভারে রান</span>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-sm">
+                        <span class="text-slate-400 text-xs sm:text-sm" data-i18n="bowlAvg">বোলিং গড় (AVG)</span>
+                        <p id="stat-bowl-avg" class="text-2xl sm:text-3xl font-extrabold text-sky-400 mt-1">0.00</p>
+                        <span class="text-xs text-slate-500 mt-1 block" data-i18n="runsPerWicket">উইকেট প্রতি রান</span>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-sm">
+                        <span class="text-slate-400 text-xs sm:text-sm" data-i18n="bbi">সেরা বোলিং (BBI)</span>
+                        <p id="stat-bowl-bbi" class="text-2xl sm:text-3xl font-extrabold text-purple-400 mt-1">0/0</p>
+                        <span class="text-xs text-slate-500 mt-1 block" data-i18n="inSingleInnings">এক ইনিংসে</span>
+                    </div>
+                </div>
+
+                <!-- Bowling Milestones -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mt-3">
+                    <div class="bg-slate-900/60 border border-slate-800 p-3 rounded-lg flex justify-between items-center">
+                        <span class="text-slate-400 text-xs" data-i18n="bowlSR">বোলিং স্ট্রাইক রেট:</span>
+                        <span id="stat-bowl-sr" class="text-lg font-bold text-emerald-400">0.0</span>
+                    </div>
+                    <div class="bg-slate-900/60 border border-slate-800 p-3 rounded-lg flex justify-between items-center">
+                        <span class="text-slate-400 text-xs" data-i18n="threeWickets">৩+ উইকেট (3W):</span>
+                        <span id="stat-bowl-3w" class="text-lg font-bold text-amber-400">0</span>
+                    </div>
+                    <div class="bg-slate-900/60 border border-slate-800 p-3 rounded-lg flex justify-between items-center">
+                        <span class="text-slate-400 text-xs" data-i18n="fiveWickets">৫+ উইকেট (5W):</span>
+                        <span id="stat-bowl-5w" class="text-lg font-bold text-rose-400">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fielding & General Stats -->
+            <div class="pt-4">
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="w-2 h-6 bg-purple-500 rounded-full"></div>
+                    <h2 class="text-xl font-bold text-white tracking-wide" data-i18n="fieldingSummary">ফিল্ডিং ও মোমেন্টস</h2>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-sm flex items-center justify-between">
+                        <div>
+                            <span class="text-slate-400 text-xs" data-i18n="catches">ক্যাচ (Catches)</span>
+                            <p id="stat-field-catches" class="text-2xl font-bold text-white mt-1">0</p>
+                        </div>
+                        <i class="fa-solid fa-hand-paper text-2xl text-slate-700"></i>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-sm flex items-center justify-between">
+                        <div>
+                            <span class="text-slate-400 text-xs" data-i18n="runouts">রান আউট (Run Outs)</span>
+                            <p id="stat-field-runouts" class="text-2xl font-bold text-white mt-1">0</p>
+                        </div>
+                        <i class="fa-solid fa-person-running text-2xl text-slate-700"></i>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-sm flex items-center justify-between">
+                        <div>
+                            <span class="text-slate-400 text-xs" data-i18n="mom">ম্যান অব দ্য ম্যাচ</span>
+                            <p id="stat-field-mom" class="text-2xl font-bold text-amber-400 mt-1">0</p>
+                        </div>
+                        <i class="fa-solid fa-trophy text-2xl text-amber-500/20"></i>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-sm flex items-center justify-between">
+                        <div>
+                            <span class="text-slate-400 text-xs" data-i18n="winRate">জয়ের হার (% Win)</span>
+                            <p id="stat-win-rate" class="text-2xl font-bold text-emerald-400 mt-1">0%</p>
+                        </div>
+                        <i class="fa-solid fa-chart-pie text-2xl text-slate-700"></i>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ================= TAB 2: MATCH HISTORY ================= -->
+        <section id="tab-history" class="hidden space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <h2 class="text-xl font-bold text-white" data-i18n="historyTitle">আমার ম্যাচের ইতিহাস ও স্কোরকার্ড</h2>
+                <div class="text-xs text-slate-400">
+                    <span data-i18n="totalRecordedMatches">মোট রেকর্ডকৃত ম্যাচ:</span> <span id="total-matches-count" class="text-emerald-400 font-bold">0</span> <span data-i18n="matchUnit">টি</span>
+                </div>
+            </div>
+
+            <div id="matches-list-container" class="space-y-3">
+                <!-- Dynamically generated matches -->
+            </div>
+        </section>
+
+        <!-- ================= TAB 3: ADD/EDIT MATCH ================= -->
+        <section id="tab-add" class="hidden max-w-4xl mx-auto">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-8 shadow-xl">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 id="form-title" class="text-2xl font-bold text-white" data-i18n="formTitleAdd">নতুন ম্যাচের স্কোরকার্ড যোগ করুন</h2>
+                        <p class="text-xs text-slate-400 mt-1" data-i18n="formSubtitle">সঠিক তথ্য দিয়ে ঘরগুলো পূরণ করুন। যেসব বিভাগে অংশ নেননি তা ফাঁকা বা ০ রাখুন।</p>
+                    </div>
+                    <button id="cancel-edit-btn" onclick="cancelEdit()" class="hidden px-3 py-1.5 text-xs bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700">
+                        <i class="fa-solid fa-times mr-1"></i> <span data-i18n="cancelEdit">বাতিল</span>
+                    </button>
+                </div>
+
+                <form id="match-form" onsubmit="handleFormSubmit(event)" class="space-y-6">
+                    <input type="hidden" id="match-id" value="">
+
+                    <!-- General Details -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pb-4 border-b border-slate-800">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="fieldDate">তারিখ *</label>
+                            <input type="date" id="match-date" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="fieldOpponent">প্রতিপক্ষ দল / টুর্নামেন্ট *</label>
+                            <input type="text" id="match-opponent" placeholder="যেমন: ধানমন্ডি নাইট রাইডার্স" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="fieldFormat">ম্যাচ ফরম্যাট *</label>
+                            <select id="match-format" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                                <option value="4_OVER" selected data-i18n="opt4Over">৪ ওভার (4 Overs)</option>
+                                <option value="6_OVER" data-i18n="opt6Over">৬ ওভার (6 Overs)</option>
+                                <option value="10_OVER" data-i18n="opt10Over">১০ ওভার (10 Overs)</option>
+                                <option value="NUMBER_BATTING" data-i18n="optNumBatting">নাম্বার ব্যাটিং (Street / Tape Tennis)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Batting Inputs -->
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-baseball text-emerald-400"></i>
+                            <h3 class="text-base font-semibold text-white" data-i18n="secBatting">ব্যাটিং পারফরম্যান্স</h3>
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                            <div class="col-span-2 sm:col-span-1">
+                                <label class="block text-xs text-slate-400 mb-1" data-i18n="didBat">ব্যাটিং করেছেন?</label>
+                                <select id="bat-batted" onchange="toggleBattingFields()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                                    <option value="YES" selected data-i18n="yes">হ্যাঁ</option>
+                                    <option value="NO" data-i18n="no">না (DNB)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1" data-i18n="runs">রান (Runs)</label>
+                                <input type="number" id="bat-runs" min="0" value="0" class="bat-input w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1" data-i18n="balls">বল (Balls)</label>
+                                <input type="number" id="bat-balls" min="0" value="0" class="bat-input w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1" data-i18n="status">স্ট্যাটাস</label>
+                                <select id="bat-notout" class="bat-input w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                                    <option value="OUT" data-i18n="out">আউট (Out)</option>
+                                    <option value="NO" data-i18n="notOut">নট আউট (*)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1" data-i18n="fours">চার (4s)</label>
+                                <input type="number" id="bat-fours" min="0" value="0" class="bat-input w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1" data-i18n="sixes">ছক্কা (6s)</label>
+                                <input type="number" id="bat-sixes" min="0" value="0" class="bat-input w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bowling Inputs -->
+                    <div class="space-y-4 pt-4 border-t border-slate-800">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-bowling-ball text-sky-400"></i>
+                            <h3 class="text-base font-semibold text-white" data-i18n="secBowling">বোলিং পারফরম্যান্স</h3>
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1" data-i18n="overs">ওভার (যেমন: 2 বা 2.1)</label>
+                                <input type="number" step="0.1" id="bowl-overs" min="0" value="0" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1" data-i18n="bowlConceded">দিয়েছেন (Runs)</label>
+                                <input type="number" id="bowl-runs" min="0" value="0" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1" data-i18n="wicketsTaken">উইকেট (Wickets)</label>
+                                <input type="number" id="bowl-wickets" min="0" value="0" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1" data-i18n="maidens">মেডেন (Maidens)</label>
+                                <input type="number" id="bowl-maidens" min="0" value="0" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fielding & Extras -->
+                    <div class="space-y-4 pt-4 border-t border-slate-800">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1" data-i18n="fieldCatches">ক্যাচ (Catches)</label>
+                                <input type="number" id="field-catches" min="0" value="0" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1" data-i18n="matchResult">ম্যাচের ফলাফল</label>
+                                <select id="match-result" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                                    <option value="WON" data-i18n="resWon">জয় (Won)</option>
+                                    <option value="LOST" data-i18n="resLost">পরাজয় (Lost)</option>
+                                    <option value="DRAW" data-i18n="resDraw">ড্র / টাই / নো-রেজাল্ট</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center pt-5">
+                                <label class="flex items-center gap-2 cursor-pointer text-sm text-slate-300">
+                                    <input type="checkbox" id="field-mom" class="w-4 h-4 rounded text-emerald-600 bg-slate-800 border-slate-700 focus:ring-emerald-500">
+                                    <span data-i18n="wasMom">ম্যান অব দ্য ম্যাচ ছিলেন?</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1" data-i18n="matchNotes">ম্যাচ নোট বা গুরুত্বপূর্ণ মুহূর্ত (ঐচ্ছিক)</label>
+                            <textarea id="match-notes" rows="2" placeholder="যেমন: শেষ বলে ৬ মেরে ম্যাচ জিতিয়েছি..." class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-emerald-500"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="pt-4 flex justify-end gap-3">
+                        <button type="button" onclick="resetForm()" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium transition" data-i18n="reset">
+                            রিসেট
+                        </button>
+                        <button type="submit" id="submit-btn" class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm transition shadow-lg shadow-emerald-900/30" data-i18n="saveMatch">
+                            ম্যাচ সেভ করুন
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- ================= TAB 4: COMMUNITY & PUBLIC LEADERBOARD ================= -->
+        <section id="tab-community" class="hidden space-y-6">
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 sm:p-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-trophy text-amber-400"></i>
+                            <span data-i18n="communityLeaderboard">কমিউনিটি প্লেয়ার্স ও স্কোরবোর্ড</span>
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-1" data-i18n="communitySubtitle">মাদার প্ল্যাটফর্মে নিবন্ধিত সকল খেলোয়াড়দের ক্রিকেট পরিসংখ্যান (শুধু দর্শনযোগ্য, কেউ পরিবর্তন করতে পারবে না)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Player Cards Container -->
+            <div id="community-players-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Dynamically generated profiles -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Authentication Modal -->
+    <div id="auth-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-5">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-user-check text-emerald-400"></i>
+                    <span data-i18n="loginTitle">প্লেয়ার প্রোফাইল লগইন</span>
+                </h3>
+                <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <p class="text-xs text-slate-400" data-i18n="loginDesc">আপনার নিজের ক্রিকেট প্রোফাইল ক্লাউডে নিরাপদ রাখতে ও রেকর্ড সুরক্ষিত করতে একটি নাম লিখে সাইন-ইন করুন।</p>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs text-slate-300 font-semibold mb-1" data-i18n="playerName">প্লেয়ার নাম / আইডি *</label>
+                    <input type="text" id="auth-name-input" placeholder="যেমন: তামিম ইকবাল" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                </div>
+            </div>
+
+            <div class="pt-2 flex justify-end gap-2">
+                <button onclick="closeAuthModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs" data-i18n="cancel">বাতিল</button>
+                <button onclick="signInUser()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg text-xs" data-i18n="loginBtn">লগইন করুন</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Public Player Modal -->
+    <div id="public-player-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-2xl w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <div class="flex items-center gap-3">
+                    <div id="modal-player-avatar" class="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-lg uppercase">
+                        P
+                    </div>
+                    <div>
+                        <h3 id="modal-player-name" class="text-lg font-bold text-white">Player Name</h3>
+                        <p class="text-xs text-emerald-400" data-i18n="readOnlyNotice"><i class="fa-solid fa-lock mr-1"></i>সুরক্ষিত পাবলিক প্রোফাইল (শুধুমাত্র প্রদর্শনযোগ্য)</p>
+                    </div>
+                </div>
+                <button onclick="closePublicPlayerModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <div id="modal-player-content" class="space-y-4 text-xs">
+                <!-- Content inserted dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Global App State & Core UI Handlers -->
+    <script>
+        // Global Application State Object
+        window.appState = {
+            db: null,
+            auth: null,
+            appId: typeof __app_id !== 'undefined' ? __app_id : 'cricket-career-hub',
+            currentUser: null,
+            userId: null,
+            userName: localStorage.getItem('cricket_user_name') || "খেলোয়াড়",
+            matches: [],
+            communityPlayers: [],
+            currentLanguage: 'bn',
+            currentFilter: 'ALL'
+        };
+
+        // Language Dictionary
+        const i18n = {
+            bn: {
+                appTitle: "ক্রিকেট ক্যারিয়ার ও কমিউনিটি",
+                appSubtitle: "আপনার এলাকা ও টুর্নামেন্টের অল-ইন-ওয়ান ক্রিকেট ইতিহাস",
+                login: "লগইন",
+                tabDashboard: "আমার ক্যারিয়ার",
+                tabMatches: "ম্যাচ ইতিহাস",
+                tabAddMatch: "নতুন ম্যাচ",
+                tabCommunity: "কমিউনিটি প্লেয়ার্স",
+                filterFormat: "ফরম্যাট নির্বাচন করুন:",
+                formatAll: "সব ফরম্যাট",
+                format4Over: "৪ ওভার",
+                format6Over: "৬ ওভার",
+                format10Over: "১০ ওভার",
+                formatNumBatting: "নাম্বার ব্যাটিং",
+                battingSummary: "ব্যাটিং পরিসংখ্যান (Batting Summary)",
+                matInn: "ম্যাচ / ইনিংস",
+                totalRuns: "মোট রান",
+                batAvg: "ব্যাটিং গড় (AVG)",
+                runsPerOut: "রান প্রতি আউট",
+                batSR: "স্ট্রাইক রেট (SR)",
+                runsPer100B: "প্রতি ১০০ বলে রান",
+                highestScore: "সর্বোচ্চ রান (HS)",
+                inSingleInnings: "এক ইনিংসে",
+                hundreds: "সেঞ্চুরি (100s):",
+                fifties: "হাফ-সেঞ্চুরি (50s):",
+                boundaries: "বাউন্ডারি (4s / 6s):",
+                ducks: "ডাক (0 রানে আউট):",
+                bowlingSummary: "বোলিং পরিসংখ্যান (Bowling Summary)",
+                oversMaidens: "ওভার / মেডেন",
+                wickets: "উইকেট",
+                economy: "ইকোনমি (Econ)",
+                runsPerOver: "প্রতি ওভারে রান",
+                bowlAvg: "বোলিং গড় (AVG)",
+                runsPerWicket: "উইকেট প্রতি রান",
+                bbi: "সেরা বোলিং (BBI)",
+                bowlSR: "বোলিং স্ট্রাইক রেট:",
+                threeWickets: "৩+ উইকেট (3W):",
+                fiveWickets: "৫+ উইকেট (5W):",
+                fieldingSummary: "ফিল্ডিং ও মোমেন্টস",
+                catches: "ক্যাচ (Catches)",
+                runouts: "রান আউট (Run Outs)",
+                mom: "ম্যান অব দ্য ম্যাচ",
+                winRate: "জয়ের হার (% Win)",
+                historyTitle: "আমার ম্যাচের ইতিহাস ও স্কোরকার্ড",
+                totalRecordedMatches: "মোট রেকর্ডকৃত ম্যাচ:",
+                matchUnit: "টি",
+                formTitleAdd: "নতুন ম্যাচের স্কোরকার্ড যোগ করুন",
+                formTitleEdit: "ম্যাচ স্কোরকার্ড এডিট করুন",
+                formSubtitle: "সঠিক তথ্য দিয়ে ঘরগুলো পূরণ করুন। যেসব বিভাগে অংশ নেননি তা ফাঁকা বা ০ রাখুন।",
+                cancelEdit: "বাতিল",
+                fieldDate: "তারিখ *",
+                fieldOpponent: "প্রতিপক্ষ দল / টুর্নামেন্ট *",
+                fieldFormat: "ম্যাচ ফরম্যাট *",
+                opt4Over: "৪ ওভার (4 Overs)",
+                opt6Over: "৬ ওভার (6 Overs)",
+                opt10Over: "১০ ওভার (10 Overs)",
+                optNumBatting: "নাম্বার ব্যাটিং (Street / Tape Tennis)",
+                secBatting: "ব্যাটিং পারফরম্যান্স",
+                didBat: "ব্যাটিং করেছেন?",
+                yes: "হ্যাঁ",
+                no: "না (DNB)",
+                runs: "রান (Runs)",
+                balls: "বল (Balls)",
+                status: "স্ট্যাটাস",
+                out: "আউট (Out)",
+                notOut: "নট আউট (*)",
+                fours: "চার (4s)",
+                sixes: "ছক্কা (6s)",
+                secBowling: "বোলিং পারফরম্যান্স",
+                overs: "ওভার (যেমন: 2 বা 2.1)",
+                bowlConceded: "দিয়েছেন (Runs)",
+                wicketsTaken: "উইকেট (Wickets)",
+                maidens: "মেডেন (Maidens)",
+                fieldCatches: "ক্যাচ (Catches)",
+                matchResult: "ম্যাচের ফলাফল",
+                resWon: "জয় (Won)",
+                resLost: "পরাজয় (Lost)",
+                resDraw: "ড্র / টাই / নো-রেজাল্ট",
+                wasMom: "ম্যান অব দ্য ম্যাচ ছিলেন?",
+                matchNotes: "ম্যাচ নোট বা গুরুত্বপূর্ণ মুহূর্ত (ঐচ্ছিক)",
+                reset: "রিসেট",
+                saveMatch: "ম্যাচ সেভ করুন",
+                updateMatch: "পরিবর্তন সেভ করুন",
+                communityLeaderboard: "কমিউনিটি প্লেয়ার্স ও স্কোরবোর্ড",
+                communitySubtitle: "মাদার প্ল্যাটফর্মে নিবন্ধিত সকল খেলোয়াড়দের ক্রিকেট পরিসংখ্যান (শুধু দর্শনযোগ্য, কেউ পরিবর্তন করতে পারবে না)",
+                loginTitle: "প্লেয়ার প্রোফাইল লগইন",
+                loginDesc: "আপনার নিজের ক্রিকেট প্রোফাইল ক্লাউডে নিরাপদ রাখতে ও রেকর্ড সুরক্ষিত করতে একটি নাম লিখে সাইন-ইন করুন।",
+                playerName: "প্লেয়ার নাম / আইডি *",
+                cancel: "বাতিল",
+                loginBtn: "লগইন করুন",
+                readOnlyNotice: "সুরক্ষিত পাবলিক প্রোফাইল (শুধুমাত্র প্রদর্শনযোগ্য)"
+            },
+            en: {
+                appTitle: "Cricket Career & Community Hub",
+                appSubtitle: "All-in-one Cricket Statistics for Street, Local & Tournament Matches",
+                login: "Login",
+                tabDashboard: "My Career",
+                tabMatches: "Match Logs",
+                tabAddMatch: "Add Match",
+                tabCommunity: "Community Players",
+                filterFormat: "Select Match Format:",
+                formatAll: "All Formats",
+                format4Over: "4 Overs",
+                format6Over: "6 Overs",
+                format10Over: "10 Overs",
+                formatNumBatting: "Number Batting",
+                battingSummary: "Batting Statistics Summary",
+                matInn: "Matches / Innings",
+                totalRuns: "Total Runs",
+                batAvg: "Batting Avg",
+                runsPerOut: "Runs per dismissal",
+                batSR: "Strike Rate (SR)",
+                runsPer100B: "Runs per 100 balls",
+                highestScore: "Highest Score (HS)",
+                inSingleInnings: "In an innings",
+                hundreds: "Centuries (100s):",
+                fifties: "Half-Centuries (50s):",
+                boundaries: "Boundaries (4s / 6s):",
+                ducks: "Ducks (0 runs):",
+                bowlingSummary: "Bowling Statistics Summary",
+                oversMaidens: "Overs / Maidens",
+                wickets: "Wickets",
+                economy: "Economy (Econ)",
+                runsPerOver: "Runs per over",
+                bowlAvg: "Bowling Avg",
+                runsPerWicket: "Runs per wicket",
+                bbi: "Best Bowling (BBI)",
+                bowlSR: "Bowling Strike Rate:",
+                threeWickets: "3+ Wickets (3W):",
+                fiveWickets: "5+ Wickets (5W):",
+                fieldingSummary: "Fielding & Moments",
+                catches: "Catches",
+                runouts: "Run Outs",
+                mom: "Man of the Match",
+                winRate: "Win Rate (% Win)",
+                historyTitle: "My Match History & Scorecards",
+                totalRecordedMatches: "Total Recorded Matches:",
+                matchUnit: "",
+                formTitleAdd: "Add New Match Scorecard",
+                formTitleEdit: "Edit Match Scorecard",
+                formSubtitle: "Fill in the fields accurately. Leave unplayed sections blank or 0.",
+                cancelEdit: "Cancel",
+                fieldDate: "Date *",
+                fieldOpponent: "Opponent Team / Match Name *",
+                fieldFormat: "Match Format *",
+                opt4Over: "4 Overs",
+                opt6Over: "6 Overs",
+                opt10Over: "10 Overs",
+                optNumBatting: "Number Batting (Street / Tape Tennis)",
+                secBatting: "Batting Performance",
+                didBat: "Did you Bat?",
+                yes: "Yes",
+                no: "No (DNB)",
+                runs: "Runs",
+                balls: "Balls Faced",
+                status: "Dismissal Status",
+                out: "Out",
+                notOut: "Not Out (*)",
+                fours: "Fours (4s)",
+                sixes: "Sixes (6s)",
+                secBowling: "Bowling Performance",
+                overs: "Overs (e.g. 2 or 2.1)",
+                bowlConceded: "Runs Conceded",
+                wicketsTaken: "Wickets",
+                maidens: "Maiden Overs",
+                fieldCatches: "Catches",
+                matchResult: "Match Result",
+                resWon: "Won",
+                resLost: "Lost",
+                resDraw: "Draw / Tied",
+                wasMom: "Man of the Match?",
+                matchNotes: "Match Notes / Highlights (Optional)",
+                reset: "Reset",
+                saveMatch: "Save Match",
+                updateMatch: "Update Match",
+                communityLeaderboard: "Community Players & Leaderboard",
+                communitySubtitle: "Cricket statistics of all registered players on the mother platform (View only)",
+                loginTitle: "Player Profile Sign In",
+                loginDesc: "Enter your name to register your player record safely on the central cloud.",
+                playerName: "Player Name / ID *",
+                cancel: "Cancel",
+                loginBtn: "Sign In",
+                readOnlyNotice: "Protected Public Profile (View Only)"
+            }
+        };
+
+        // UI Update Functions
+        window.updateUserUI = function() {
+            const loginBtn = document.getElementById('login-btn');
+            const userBadge = document.getElementById('user-badge');
+            const userNameDisplay = document.getElementById('user-name-display');
+            const userAvatar = document.getElementById('user-avatar');
+
+            if (window.appState.userName && window.appState.userName !== "খেলোয়াড়") {
+                loginBtn.classList.add('hidden');
+                userBadge.classList.remove('hidden');
+                userNameDisplay.innerText = window.appState.userName;
+                userAvatar.innerText = window.appState.userName.charAt(0).toUpperCase();
+            } else {
+                loginBtn.classList.remove('hidden');
+                userBadge.classList.add('hidden');
+            }
+        };
+
+        window.toggleLanguage = function() {
+            window.appState.currentLanguage = window.appState.currentLanguage === 'bn' ? 'en' : 'bn';
+            document.getElementById('lang-btn-text').innerText = window.appState.currentLanguage === 'bn' ? 'English' : 'বাংলা';
+            
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (i18n[window.appState.currentLanguage][key]) {
+                    el.innerText = i18n[window.appState.currentLanguage][key];
+                }
+            });
+
+            window.renderDashboard();
+            window.renderMatchHistory();
+            window.renderCommunityGrid();
+        };
+
+        window.switchTab = function(tabName) {
+            document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('border-emerald-500', 'text-emerald-400');
+                btn.classList.add('border-transparent', 'text-slate-400');
+            });
+
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-btn-${tabName}`);
+            activeBtn.classList.add('border-emerald-500', 'text-emerald-400');
+            activeBtn.classList.remove('border-transparent', 'text-slate-400');
+
+            if (tabName === 'dashboard') window.renderDashboard();
+            if (tabName === 'history') window.renderMatchHistory();
+            if (tabName === 'community') window.renderCommunityGrid();
+        };
+
+        window.openAuthModal = function() {
+            document.getElementById('auth-name-input').value = window.appState.userName !== "খেলোয়াড়" ? window.appState.userName : "";
+            document.getElementById('auth-modal').classList.remove('hidden');
+        };
+
+        window.closeAuthModal = function() {
+            document.getElementById('auth-modal').classList.add('hidden');
+        };
+
+        window.signInUser = function() {
+            const inputName = document.getElementById('auth-name-input').value.trim();
+            if (!inputName) return;
+
+            window.appState.userName = inputName;
+            localStorage.setItem('cricket_user_name', inputName);
+            window.updateUserUI();
+            window.closeAuthModal();
+
+            if (window.saveUserDataToFirestore) {
+                window.saveUserDataToFirestore();
+            }
+        };
+
+        window.filterStats = function(format) {
+            window.appState.currentFilter = format;
+            document.querySelectorAll('.format-filter-btn').forEach(btn => {
+                if (btn.getAttribute('data-format') === format) {
+                    btn.className = "format-filter-btn px-3 py-1.5 text-xs sm:text-sm rounded-lg bg-emerald-600 text-white font-medium transition";
+                } else {
+                    btn.className = "format-filter-btn px-3 py-1.5 text-xs sm:text-sm rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 font-medium transition";
+                }
+            });
+            window.renderDashboard();
+        };
+
+        // Calculation Helpers
+        function calculateStats(matches, format = 'ALL') {
+            const filtered = format === 'ALL' ? matches : matches.filter(m => m.format === format);
+
+            let batMatches = filtered.length;
+            let batInnings = 0;
+            let batRuns = 0;
+            let batBalls = 0;
+            let batNotOuts = 0;
+            let batHighest = 0;
+            let batHighestNotOut = false;
+            let bat100s = 0;
+            let bat50s = 0;
+            let bat4s = 0;
+            let bat6s = 0;
+            let batDucks = 0;
+
+            let bowlOversTotalBalls = 0;
+            let bowlRuns = 0;
+            let bowlWickets = 0;
+            let bowlMaidens = 0;
+            let bestWkts = 0;
+            let bestRuns = 999;
+            let bowl3w = 0;
+            let bowl5w = 0;
+
+            let fieldCatches = 0;
+            let fieldRunouts = 0;
+            let totalMOM = 0;
+            let wins = 0;
+
+            filtered.forEach(m => {
+                // Batting
+                if (m.batting && m.batting.batted === 'YES') {
+                    batInnings++;
+                    const r = Number(m.batting.runs || 0);
+                    const b = Number(m.batting.balls || 0);
+                    const isNO = m.batting.notOut === 'NO';
+
+                    batRuns += r;
+                    batBalls += b;
+                    if (isNO) batNotOuts++;
+
+                    if (r >= 100) bat100s++;
+                    else if (r >= 50) bat50s++;
+                    if (r === 0 && !isNO) batDucks++;
+
+                    bat4s += Number(m.batting.fours || 0);
+                    bat6s += Number(m.batting.sixes || 0);
+
+                    if (r > batHighest || (r === batHighest && isNO && !batHighestNotOut)) {
+                        batHighest = r;
+                        batHighestNotOut = isNO;
+                    }
+                }
+
+                // Bowling
+                if (m.bowling && Number(m.bowling.overs || 0) > 0) {
+                    const rawOvers = Number(m.bowling.overs || 0);
+                    const fullOvers = Math.floor(rawOvers);
+                    const extraBalls = Math.round((rawOvers - fullOvers) * 10);
+                    const totalBalls = (fullOvers * 6) + extraBalls;
+
+                    bowlOversTotalBalls += totalBalls;
+                    const rConceded = Number(m.bowling.runs || 0);
+                    const wkts = Number(m.bowling.wickets || 0);
+
+                    bowlRuns += rConceded;
+                    bowlWickets += wkts;
+                    bowlMaidens += Number(m.bowling.maidens || 0);
+
+                    if (wkts >= 5) bowl5w++;
+                    else if (wkts >= 3) bowl3w++;
+
+                    if (wkts > bestWkts || (wkts === bestWkts && rConceded < bestRuns)) {
+                        bestWkts = wkts;
+                        bestRuns = rConceded;
+                    }
+                }
+
+                // Extras & Results
+                fieldCatches += Number(m.fielding?.catches || 0);
+                if (m.fielding?.mom) totalMOM++;
+                if (m.result === 'WON') wins++;
+            });
+
+            // Batting Math
+            const outs = batInnings - batNotOuts;
+            const batAvg = outs > 0 ? (batRuns / outs).toFixed(2) : (batInnings > 0 ? batRuns.toFixed(2) : "0.00");
+            const batSR = batBalls > 0 ? ((batRuns / batBalls) * 100).toFixed(2) : "0.00";
+
+            // Bowling Math
+            const totalOversDec = Math.floor(bowlOversTotalBalls / 6) + ((bowlOversTotalBalls % 6) / 10);
+            const bowlOversFormatted = (Math.floor(bowlOversTotalBalls / 6) + ((bowlOversTotalBalls % 6) / 10)).toFixed(1);
+            const bowlEcon = bowlOversTotalBalls > 0 ? (bowlRuns / (bowlOversTotalBalls / 6)).toFixed(2) : "0.00";
+            const bowlAvg = bowlWickets > 0 ? (bowlRuns / bowlWickets).toFixed(2) : "0.00";
+            const bowlSR = bowlWickets > 0 ? (bowlOversTotalBalls / bowlWickets).toFixed(1) : "0.0";
+            const bbiStr = bestWkts > 0 || bestRuns < 999 ? `${bestWkts}/${bestRuns === 999 ? 0 : bestRuns}` : "0/0";
+
+            const winRate = batMatches > 0 ? Math.round((wins / batMatches) * 100) : 0;
+
+            return {
+                batMatches, batInnings, batRuns, batBalls, batNotOuts, batAvg, batSR,
+                batHighest: `${batHighest}${batHighestNotOut ? '*' : ''}`,
+                bat100s, bat50s, bat4s, bat6s, batDucks,
+                bowlOversFormatted, bowlMaidens, bowlWickets, bowlRuns, bowlEcon, bowlAvg, bowlSR, bbiStr, bowl3w, bowl5w,
+                fieldCatches, fieldRunouts, totalMOM, winRate
+            };
+        }
+
+        window.renderDashboard = function() {
+            const stats = calculateStats(window.appState.matches, window.appState.currentFilter);
+
+            document.getElementById('stat-bat-matches').innerText = `${stats.batMatches} / ${stats.batInnings}`;
+            document.getElementById('stat-bat-no').innerText = `নট আউট: ${stats.batNotOuts}`;
+            document.getElementById('stat-bat-runs').innerText = stats.batRuns;
+            document.getElementById('stat-bat-balls').innerText = `বল খেলেছেন: ${stats.batBalls}`;
+            document.getElementById('stat-bat-avg').innerText = stats.batAvg;
+            document.getElementById('stat-bat-sr').innerText = stats.batSR;
+            document.getElementById('stat-bat-hs').innerText = stats.batHighest;
+            document.getElementById('stat-bat-100s').innerText = stats.bat100s;
+            document.getElementById('stat-bat-50s').innerText = stats.bat50s;
+            document.getElementById('stat-bat-boundaries').innerText = `${stats.bat4s} / ${stats.bat6s}`;
+            document.getElementById('stat-bat-ducks').innerText = stats.batDucks;
+
+            document.getElementById('stat-bowl-overs').innerText = stats.bowlOversFormatted;
+            document.getElementById('stat-bowl-maidens').innerText = `মেডেন: ${stats.bowlMaidens}`;
+            document.getElementById('stat-bowl-wickets').innerText = stats.bowlWickets;
+            document.getElementById('stat-bowl-runs').innerText = `প্রদানকৃত রান: ${stats.bowlRuns}`;
+            document.getElementById('stat-bowl-econ').innerText = stats.bowlEcon;
+            document.getElementById('stat-bowl-avg').innerText = stats.bowlAvg;
+            document.getElementById('stat-bowl-bbi').innerText = stats.bbiStr;
+            document.getElementById('stat-bowl-sr').innerText = stats.bowlSR;
+            document.getElementById('stat-bowl-3w').innerText = stats.bowl3w;
+            document.getElementById('stat-bowl-5w').innerText = stats.bowl5w;
+
+            document.getElementById('stat-field-catches').innerText = stats.fieldCatches;
+            document.getElementById('stat-field-runouts').innerText = stats.fieldRunouts;
+            document.getElementById('stat-field-mom').innerText = stats.totalMOM;
+            document.getElementById('stat-win-rate').innerText = `${stats.winRate}%`;
+        };
+
+        window.renderMatchHistory = function() {
+            const container = document.getElementById('matches-list-container');
+            const totalCount = document.getElementById('total-matches-count');
+            totalCount.innerText = window.appState.matches.length;
+
+            if (!window.appState.matches || window.appState.matches.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 bg-slate-900/50 border border-slate-800 rounded-2xl">
+                        <i class="fa-solid fa-folder-open text-4xl text-slate-700 mb-3"></i>
+                        <p class="text-sm text-slate-400">এখনো কোনো ম্যাচের রেকর্ড যোগ করা হয়নি।</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const formatMap = {
+                '4_OVER': '৪ ওভার',
+                '6_OVER': '৬ ওভার',
+                '10_OVER': '১০ ওভার',
+                'NUMBER_BATTING': 'নাম্বার ব্যাটিং'
+            };
+
+            container.innerHTML = window.appState.matches.slice().reverse().map((m, idx) => {
+                const realIndex = window.appState.matches.length - 1 - idx;
+                const resultColor = m.result === 'WON' ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' : (m.result === 'LOST' ? 'text-rose-400 bg-rose-500/10 border-rose-500/30' : 'text-amber-400 bg-amber-500/10 border-amber-500/30');
+
+                return `
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 transition hover:border-slate-700 space-y-3">
+                        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 border-b border-slate-800/80 pb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2.5 py-0.5 text-xs rounded-md bg-slate-800 text-emerald-400 border border-slate-700 font-semibold">${formatMap[m.format] || m.format}</span>
+                                <h3 class="font-bold text-white text-base">${m.opponent}</h3>
+                            </div>
+                            <div class="flex items-center justify-between sm:justify-end gap-3">
+                                <span class="text-xs text-slate-400"><i class="fa-regular fa-calendar mr-1"></i>${m.date}</span>
+                                <span class="px-2 py-0.5 text-xs rounded font-semibold border ${resultColor}">${m.result || 'PLAYED'}</span>
+                                <button onclick="editMatch(${realIndex})" class="text-slate-400 hover:text-emerald-400 text-xs px-2 py-1"><i class="fa-solid fa-pen"></i></button>
+                                <button onclick="deleteMatch(${realIndex})" class="text-slate-400 hover:text-rose-400 text-xs px-2 py-1"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                            <div class="bg-slate-950/60 p-2 rounded border border-slate-800/60">
+                                <span class="text-slate-400 block text-[10px]">ব্যাটিং:</span>
+                                <span class="font-semibold text-slate-200">
+                                    ${m.batting?.batted === 'YES' ? `${m.batting.runs} run (${m.batting.balls}b) ${m.batting.notOut === 'NO' ? '*' : ''} [4s:${m.batting.fours||0}, 6s:${m.batting.sixes||0}]` : 'DNB'}
+                                </span>
+                            </div>
+                            <div class="bg-slate-950/60 p-2 rounded border border-slate-800/60">
+                                <span class="text-slate-400 block text-[10px]">বোলিং:</span>
+                                <span class="font-semibold text-slate-200">
+                                    ${Number(m.bowling?.overs || 0) > 0 ? `${m.bowling.overs} Ov - ${m.bowling.wickets} Wkts / ${m.bowling.runs} Runs` : 'DNB'}
+                                </span>
+                            </div>
+                            <div class="col-span-2 sm:col-span-1 bg-slate-950/60 p-2 rounded border border-slate-800/60 flex items-center justify-between">
+                                <div>
+                                    <span class="text-slate-400 block text-[10px]">ফিল্ডিং / পুরস্কার:</span>
+                                    <span class="font-semibold text-slate-200">Catches: ${m.fielding?.catches || 0}</span>
+                                </div>
+                                ${m.fielding?.mom ? '<span class="text-amber-400 text-xs font-bold"><i class="fa-solid fa-trophy mr-1"></i>MOM</span>' : ''}
+                            </div>
+                        </div>
+                        ${m.notes ? `<p class="text-xs text-slate-400 italic bg-slate-950/30 p-2 rounded border border-slate-800/40"><i class="fa-solid fa-quote-left text-slate-600 mr-2"></i>${m.notes}</p>` : ''}
+                    </div>
+                `;
+            }).join('');
+        };
+
+        window.renderCommunityGrid = function() {
+            const container = document.getElementById('community-players-grid');
+            const players = window.appState.communityPlayers || [];
+
+            if (players.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-12 bg-slate-900 border border-slate-800 rounded-2xl">
+                        <i class="fa-solid fa-users-slash text-4xl text-slate-700 mb-3"></i>
+                        <p class="text-sm text-slate-400">কমিউনিটিতে এখনো কোনো নিবন্ধিত প্লেয়ার নেই।</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = players.map(p => {
+                const pMatches = p.matches || [];
+                const stats = calculateStats(pMatches, 'ALL');
+                const isSelf = p.userId === window.appState.userId;
+
+                return `
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 hover:border-slate-700 transition flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-600 to-green-500 flex items-center justify-center font-bold text-white text-lg uppercase shadow">
+                                        ${(p.userName || 'P').charAt(0)}
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-white text-base flex items-center gap-1.5">
+                                            ${p.userName || 'Unknown'}
+                                            ${isSelf ? '<span class="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded">আপনি</span>' : ''}
+                                        </h3>
+                                        <p class="text-xs text-slate-400">${pMatches.length} টি ম্যাচ খেলেছেন</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2 text-xs mb-4">
+                                <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+                                    <span class="text-slate-400 block text-[10px]">মোট রান:</span>
+                                    <span class="font-extrabold text-emerald-400 text-base">${stats.batRuns}</span>
+                                    <span class="text-[10px] text-slate-500 block mt-0.5">গড়: ${stats.batAvg} | SR: ${stats.batSR}</span>
+                                </div>
+                                <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+                                    <span class="text-slate-400 block text-[10px]">মোট উইকেট:</span>
+                                    <span class="font-extrabold text-sky-400 text-base">${stats.bowlWickets}</span>
+                                    <span class="text-[10px] text-slate-500 block mt-0.5">ইকো: ${stats.bowlEcon} | BBI: ${stats.bbiStr}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button onclick="viewPublicPlayer('${p.userId}')" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 transition flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-eye text-emerald-400"></i> প্রোফাইল বিবরণ দেখুন
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        };
+
+        window.viewPublicPlayer = function(targetUserId) {
+            const player = window.appState.communityPlayers.find(p => p.userId === targetUserId);
+            if (!player) return;
+
+            document.getElementById('modal-player-name').innerText = player.userName || 'Player';
+            document.getElementById('modal-player-avatar').innerText = (player.userName || 'P').charAt(0).toUpperCase();
+
+            const stats = calculateStats(player.matches || [], 'ALL');
+
+            document.getElementById('modal-player-content').innerHTML = `
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-950 p-3 rounded-xl border border-slate-800">
+                    <div><span class="text-slate-400 block">ম্যাচ:</span><b class="text-white text-sm">${stats.batMatches}</b></div>
+                    <div><span class="text-slate-400 block">মোট রান:</span><b class="text-emerald-400 text-sm">${stats.batRuns}</b></div>
+                    <div><span class="text-slate-400 block">উইকেট:</span><b class="text-sky-400 text-sm">${stats.bowlWickets}</b></div>
+                    <div><span class="text-slate-400 block">MOM:</span><b class="text-amber-400 text-sm">${stats.totalMOM}</b></div>
+                </div>
+
+                <h4 class="font-bold text-white text-sm pt-2">ব্যাটিং পরিসংখ্যান:</h4>
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="bg-slate-950 p-2 rounded">গড়: <b>${stats.batAvg}</b></div>
+                    <div class="bg-slate-950 p-2 rounded">স্ট্রাইক রেট: <b>${stats.batSR}</b></div>
+                    <div class="bg-slate-950 p-2 rounded">সর্বোচ্চ: <b>${stats.batHighest}</b></div>
+                </div>
+
+                <h4 class="font-bold text-white text-sm pt-2">বোলিং পরিসংখ্যান:</h4>
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="bg-slate-950 p-2 rounded">ওভার: <b>${stats.bowlOversFormatted}</b></div>
+                    <div class="bg-slate-950 p-2 rounded">ইকোনমি: <b>${stats.bowlEcon}</b></div>
+                    <div class="bg-slate-950 p-2 rounded">সেরা: <b>${stats.bbiStr}</b></div>
+                </div>
+            `;
+
+            document.getElementById('public-player-modal').classList.remove('hidden');
+        };
+
+        window.closePublicPlayerModal = function() {
+            document.getElementById('public-player-modal').classList.add('hidden');
+        };
+
+        // Form Handlers
+        window.toggleBattingFields = function() {
+            const didBat = document.getElementById('bat-batted').value === 'YES';
+            document.querySelectorAll('.bat-input').forEach(el => el.disabled = !didBat);
+        };
+
+        window.handleFormSubmit = function(e) {
+            e.preventDefault();
+
+            const matchId = document.getElementById('match-id').value;
+            const matchData = {
+                id: matchId || Date.now().toString(),
+                date: document.getElementById('match-date').value,
+                opponent: document.getElementById('match-opponent').value,
+                format: document.getElementById('match-format').value,
+                batting: {
+                    batted: document.getElementById('bat-batted').value,
+                    runs: Number(document.getElementById('bat-runs').value || 0),
+                    balls: Number(document.getElementById('bat-balls').value || 0),
+                    notOut: document.getElementById('bat-notout').value,
+                    fours: Number(document.getElementById('bat-fours').value || 0),
+                    sixes: Number(document.getElementById('bat-sixes').value || 0)
+                },
+                bowling: {
+                    overs: Number(document.getElementById('bowl-overs').value || 0),
+                    runs: Number(document.getElementById('bowl-runs').value || 0),
+                    wickets: Number(document.getElementById('bowl-wickets').value || 0),
+                    maidens: Number(document.getElementById('bowl-maidens').value || 0)
+                },
+                fielding: {
+                    catches: Number(document.getElementById('field-catches').value || 0),
+                    mom: document.getElementById('field-mom').checked
+                },
+                result: document.getElementById('match-result').value,
+                notes: document.getElementById('match-notes').value
+            };
+
+            if (matchId) {
+                const idx = window.appState.matches.findIndex(m => m.id === matchId);
+                if (idx !== -1) window.appState.matches[idx] = matchData;
+            } else {
+                window.appState.matches.push(matchData);
+            }
+
+            if (window.saveUserDataToFirestore) {
+                window.saveUserDataToFirestore();
+            }
+
+            window.resetForm();
+            window.switchTab('history');
+        };
+
+        window.editMatch = function(index) {
+            const m = window.appState.matches[index];
+            if (!m) return;
+
+            document.getElementById('match-id').value = m.id;
+            document.getElementById('match-date').value = m.date;
+            document.getElementById('match-opponent').value = m.opponent;
+            document.getElementById('match-format').value = m.format;
+
+            document.getElementById('bat-batted').value = m.batting?.batted || 'YES';
+            document.getElementById('bat-runs').value = m.batting?.runs || 0;
+            document.getElementById('bat-balls').value = m.batting?.balls || 0;
+            document.getElementById('bat-notout').value = m.batting?.notOut || 'OUT';
+            document.getElementById('bat-fours').value = m.batting?.fours || 0;
+            document.getElementById('bat-sixes').value = m.batting?.sixes || 0;
+
+            document.getElementById('bowl-overs').value = m.bowling?.overs || 0;
+            document.getElementById('bowl-runs').value = m.bowling?.runs || 0;
+            document.getElementById('bowl-wickets').value = m.bowling?.wickets || 0;
+            document.getElementById('bowl-maidens').value = m.bowling?.maidens || 0;
+
+            document.getElementById('field-catches').value = m.fielding?.catches || 0;
+            document.getElementById('field-mom').checked = m.fielding?.mom || false;
+            document.getElementById('match-result').value = m.result || 'WON';
+            document.getElementById('match-notes').value = m.notes || '';
+
+            document.getElementById('cancel-edit-btn').classList.remove('hidden');
+            window.switchTab('add');
+        };
+
+        window.deleteMatch = function(index) {
+            window.appState.matches.splice(index, 1);
+            if (window.saveUserDataToFirestore) {
+                window.saveUserDataToFirestore();
+            }
+            window.renderMatchHistory();
+            window.renderDashboard();
+        };
+
+        window.resetForm = function() {
+            document.getElementById('match-id').value = '';
+            document.getElementById('match-form').reset();
+            document.getElementById('cancel-edit-btn').classList.add('hidden');
+        };
+
+        window.cancelEdit = function() {
+            window.resetForm();
+            window.switchTab('history');
+        };
+    </script>
+
+    <!-- Firebase SDK Modules & Realtime Subscriptions -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "dummy-key",
+            authDomain: "dummy.firebaseapp.com",
+            projectId: "dummy-project",
+            storageBucket: "dummy.appspot.com",
+            messagingSenderId: "123456",
+            appId: "1:123456:web:123456"
+        };
+
+        let app, db, auth;
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            window.appState.db = db;
+            window.appState.auth = auth;
+        } catch (e) {
+            console.warn("Firebase initialization fallback active.");
+        }
+
+        // Firebase Sync Implementations attached to window
+        window.subscribeUserMatches = function() {
+            if (!db || !window.appState.userId) return;
+            const userDocRef = doc(db, 'artifacts', window.appState.appId, 'users', window.appState.userId, 'data', 'profile');
+            
+            onSnapshot(userDocRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.data();
+                    window.appState.matches = data.matches || [];
+                    if (data.userName) {
+                        window.appState.userName = data.userName;
+                        window.updateUserUI();
+                    }
+                } else {
+                    window.saveUserDataToFirestore();
+                }
+                window.renderDashboard();
+                window.renderMatchHistory();
+            }, (error) => {
+                console.error("Firestore user sync error:", error);
+            });
+        };
+
+        window.subscribeCommunity = function() {
+            if (!db) return;
+            const publicColRef = collection(db, 'artifacts', window.appState.appId, 'public', 'data', 'players');
+            
+            onSnapshot(publicColRef, (snapshot) => {
+                const players = [];
+                snapshot.forEach(docSnap => {
+                    players.push({ id: docSnap.id, ...docSnap.data() });
+                });
+                window.appState.communityPlayers = players;
+                window.renderCommunityGrid();
+            }, (err) => {
+                console.error("Community fetch error:", err);
+            });
+        };
+
+        window.saveUserDataToFirestore = async function() {
+            if (!db || !window.appState.userId) return;
+            
+            const userDocRef = doc(db, 'artifacts', window.appState.appId, 'users', window.appState.userId, 'data', 'profile');
+            const publicDocRef = doc(db, 'artifacts', window.appState.appId, 'public', 'data', 'players', window.appState.userId);
+
+            const payload = {
+                userId: window.appState.userId,
+                userName: window.appState.userName,
+                matches: window.appState.matches,
+                updatedAt: new Date().toISOString()
+            };
+
+            try {
+                await setDoc(userDocRef, payload, { merge: true });
+                await setDoc(publicDocRef, payload, { merge: true });
+            } catch (err) {
+                console.error("Error saving data to Firestore:", err);
+            }
+        };
+
+        // Initialize Authentication
+        async function initAuth() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (e) {
+                console.warn("Auth initialization note:", e);
+            }
+        }
+
+        if (auth) {
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    window.appState.currentUser = user;
+                    window.appState.userId = user.uid;
+                    
+                    window.updateUserUI();
+                    window.subscribeUserMatches();
+                    window.subscribeCommunity();
+                }
+            });
+
+            initAuth();
+        } else {
+            window.updateUserUI();
+            window.renderDashboard();
+        }
+    </script>
+</body>
+</html>
